@@ -350,7 +350,7 @@ function drawLine(worldX, label, checkered) {
     ctx.fillRect(x + 3, G - 110, 40, 16);
   }
   ctx.fillStyle = checkered ? CONFIG.INK : CONFIG.BG;
-  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.font = '8px "Press Start 2P", "Galmuri11", monospace';
   ctx.fillText(label, checkered ? x + 6 : x + 6, checkered ? G - 74 : G - 99);
   // 바닥 라인
   for (let y = G + 2; y < CONFIG.HEIGHT; y += 6) {
@@ -410,7 +410,7 @@ function drawPlayer() {
 }
 
 function drawFloaters() {
-  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.font = '8px "Press Start 2P", "Galmuri11", monospace';
   ctx.textAlign = "center";
   for (const f of game.floaters) {
     ctx.globalAlpha = Math.min(1, f.life * 2);
@@ -424,7 +424,7 @@ function drawFloaters() {
 function drawHUD() {
   const p = game.player;
   const W = CONFIG.WIDTH;
-  ctx.font = '10px "Press Start 2P", monospace';
+  ctx.font = '10px "Press Start 2P", "Galmuri11", monospace';
   ctx.fillStyle = CONFIG.INK;
 
   // 점수
@@ -456,14 +456,14 @@ function drawHUD() {
   ctx.fillRect(barX + barW, 10, 1, 14);
   const icon = Sprites[`dino_${game.color}`];
   ctx.drawImage(icon, Math.round(barX + barW * prog - icon.width / 2), 6);
-  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.font = '8px "Press Start 2P", "Galmuri11", monospace';
   ctx.fillText(`${Math.floor(prog * CONFIG.COURSE_METERS)}m`, barX, 38);
 }
 
 function drawCountdown() {
   if (game.state !== "countdown") return;
   const n = Math.ceil(game.countdown);
-  ctx.font = '32px "Press Start 2P", monospace';
+  ctx.font = '32px "Press Start 2P", "Galmuri11", monospace';
   ctx.textAlign = "center";
   ctx.fillStyle = CONFIG.INK;
   ctx.fillText(String(n), CONFIG.WIDTH / 2, 120);

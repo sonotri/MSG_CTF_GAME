@@ -2,8 +2,8 @@
   --ink: #535353;
   --bg: #f7f7f7;
   --accent: #f0a020;
-  --pixel: "Press Start 2P", monospace;
-  --text: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --pixel: "Press Start 2P", "Galmuri11", monospace;
+  --text: "Galmuri11", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -98,6 +98,8 @@ input {
   outline: none;
 }
 input:focus { border-color: #000; }
+/* 입력칸을 누르면 NAME/PASSWORD 글자를 숨겨 커서만 보이게 */
+input:focus::placeholder { color: transparent; }
 .shake { animation: shake 0.3s; border-color: #e33; }
 @keyframes shake {
   25% { transform: translateX(-4px); }

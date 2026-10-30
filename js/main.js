@@ -2,7 +2,7 @@
 
 (async function main() {
   try {
-    await Promise.all([loadSprites(), document.fonts.load('10px "Press Start 2P"').catch(() => {})]);
+    await Promise.all([loadSprites(), document.fonts.load('10px "Press Start 2P"').catch(() => {}), document.fonts.load('10px "Galmuri11"', "가").catch(() => {})]);
   } catch (err) {
     document.body.insertAdjacentHTML("afterbegin", `<p class="error">${err.message}</p>`);
     return;

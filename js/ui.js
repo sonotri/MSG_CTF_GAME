@@ -47,9 +47,6 @@ const UI = {
       this.preview.src = `assets/sprites/dino_${game.color}_run${frameNo + 1}.png`;
     }, 120);
 
-    document.getElementById("course-info").textContent =
-      `COURSE ${CONFIG.COURSE_SEED} · ${CONFIG.COURSE_METERS}m`;
-
     document.getElementById("start-btn").onclick = () => this.start();
     this.nameInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") this.pwInput.focus();

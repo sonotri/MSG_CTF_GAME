@@ -7,7 +7,7 @@ const CARD_H = 1350;
 const CARD_INK = "#535353";
 const CARD_BG = "#f7f7f7";
 const CARD_FONT =
-  '"Press Start 2P", "Malgun Gothic", "Apple SD Gothic Neo", monospace';
+  '"Press Start 2P", "Galmuri11", "Malgun Gothic", "Apple SD Gothic Neo", monospace';
 
 // ---- 결과 데이터 <-> URL ----
 

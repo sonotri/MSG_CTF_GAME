@@ -6,6 +6,7 @@
   <title>MSG Dino Run Card</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css" />
   <style>
     :root { --ink: #535353; --bg: #f7f7f7; }
     * { box-sizing: border-box; }
@@ -13,14 +14,14 @@
       margin: 0;
       background: var(--bg);
       color: var(--ink);
-      font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      font-family: "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 16px;
       padding: 20px 16px 32px;
     }
-    h1 { font-family: "Press Start 2P", monospace; font-size: 16px; margin: 4px 0 0; }
+    h1 { font-family: "Press Start 2P", "Galmuri11", monospace; font-size: 16px; margin: 4px 0 0; }
     #card {
       width: 100%;
       max-width: 480px;
@@ -32,7 +33,7 @@
     .btn {
       width: 100%;
       max-width: 480px;
-      font-family: "Press Start 2P", monospace;
+      font-family: "Press Start 2P", "Galmuri11", monospace;
       font-size: 14px;
       padding: 16px;
       border: 2px solid var(--ink);
@@ -67,7 +68,10 @@
         return;
       }
 
-      await document.fonts.load(`20px "Press Start 2P"`).catch(() => {});
+      await Promise.all([
+        document.fonts.load(`20px "Press Start 2P"`),
+        document.fonts.load(`20px "Galmuri11"`, "가"),
+      ]).catch(() => {});
       const canvas = document.createElement("canvas");
       drawCard(canvas, data);
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
