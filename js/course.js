@@ -20,7 +20,7 @@ function mulberry32(seed) {
 }
 
 function speedAt(worldX, course) {
-  const p = Math.min(1, Math.max(0, (worldX - course.startX) / (course.finishX - course.startX)));
+  const p = Math.min(1, Math.max(0, (worldX - course.startX) / (course.rampEndX - course.startX)));
   return CONFIG.SPEED_START + (CONFIG.SPEED_END - CONFIG.SPEED_START) * Math.pow(p, CONFIG.SPEED_CURVE);
 }
 
@@ -63,7 +63,8 @@ function generateCourse(seed) {
   const G = CONFIG.GROUND_Y;
   const startX = CONFIG.START_RUNUP_PX;
   const finishX = startX + CONFIG.COURSE_METERS * CONFIG.PX_PER_METER;
-  const course = { seed, startX, finishX, obstacles: [], pickups: [], pits: [] };
+  // rampEndX: 속도가 최고에 닿는 지점. 결승선을 뒤로 밀어도 속도 곡선은 그대로 둔다.
+  const course = { seed, startX, finishX, rampEndX: finishX, obstacles: [], pickups: [], pits: [] };
 
   const addBit = (x, y, big = false, small = false) =>
     course.pickups.push({ kind: big ? "bigBit" : "bit", glyph: course.pickups.length % 2, small, x, y, taken: false });
@@ -259,6 +260,14 @@ function generateCourse(seed) {
       nextItemX = x + between(1500, 2600);
     }
   }
+
+  // 마지막 비트/장애물을 다 지나간 뒤에야 깃발이 화면에 들어오도록 결승선을 뒤로 민다
+  const lastX = Math.max(
+    ...course.pickups.map((pk) => pk.x + 14),
+    ...course.obstacles.map((o) => o.x + o.w),
+    ...course.pits.map((pt) => pt.x + pt.w)
+  );
+  course.finishX = Math.max(finishX, lastX + CONFIG.WIDTH - CONFIG.PLAYER_SCREEN_X + 60);
 
   return course;
 }
