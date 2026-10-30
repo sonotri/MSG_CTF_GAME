@@ -1,49 +1,6 @@
-// 타이틀/결과 화면과 로컬 랭킹.
+// 타이틀/결과 화면, 랭킹 표시, 닉네임+비밀번호 확인.
 
-const BOARD_KEY = `msg-dino-run:board:${CONFIG.COURSE_SEED}`;
-
-// 닉네임 = 사람. 대소문자는 구분하고 앞뒤 공백만 무시한다.
-const nameKey = (name) => name.trim();
-
-function loadBoard() {
-  let board;
-  try {
-    board = JSON.parse(localStorage.getItem(BOARD_KEY)) || [];
-  } catch {
-    return [];
-  }
-  // 이름당 최고 기록 하나만 남긴다 (예전 중복 기록 정리)
-  const best = new Map();
-  for (const e of board) {
-    const k = nameKey(e.name);
-    if (!best.has(k) || e.score > best.get(k).score) best.set(k, e);
-  }
-  return [...best.values()].sort((a, b) => b.score - a.score);
-}
-
-function findRecord(name) {
-  return loadBoard().find((e) => nameKey(e.name) === nameKey(name));
-}
-
-// 닉네임 + 비밀번호 계정. 로컬 저장이라 보안용이 아니라 "남의 닉네임 덮어쓰기 방지"용.
-const ACCOUNTS_KEY = "msg-dino-run:accounts";
 const PASSWORD_MIN = 4;
-
-function loadAccounts() {
-  try {
-    return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function saveAccounts(accounts) {
-  try {
-    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-  } catch {
-    // 저장 불가 환경이면 계정 확인만 생략
-  }
-}
 
 // cyrb53: 비밀번호를 평문으로 남기지 않기 위한 간단한 해시
 function hashPassword(name, password) {
@@ -58,14 +15,6 @@ function hashPassword(name, password) {
   h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
-}
-
-function saveBoard(board) {
-  try {
-    localStorage.setItem(BOARD_KEY, JSON.stringify(board));
-  } catch {
-    // 저장 불가 환경이면 랭킹만 생략
-  }
 }
 
 const UI = {
@@ -125,7 +74,6 @@ const UI = {
       () => (input.down = false)
     );
 
-    this.renderBoard(document.getElementById("title-board"));
   },
 
   shiftDino(step) {
@@ -160,8 +108,8 @@ const UI = {
   updateNameHint() {
     const name = this.nameInput.value.trim();
     if (!name) return this.setHint("");
-    const rec = findRecord(name);
-    if (loadAccounts()[nameKey(name)]) {
+    const rec = Store.findRecord(name);
+    if (Store.hasAccount(name)) {
       this.setHint(rec ? `기존 닉네임 · 최고 ${rec.score}점 · 비밀번호 입력` : "기존 닉네임 · 비밀번호 입력");
     } else if (rec) {
       this.setHint(`비밀번호 없는 예전 기록(${rec.score}점) · 지금 입력한 비밀번호로 등록`);
@@ -177,22 +125,28 @@ const UI = {
     setTimeout(() => input.classList.remove("shake"), 400);
   },
 
-  start() {
+  async start() {
+    if (this.busy) return;
     const name = this.nameInput.value.trim().slice(0, 12);
     const pw = this.pwInput.value;
     if (!name) return this.reject(this.nameInput, "닉네임을 입력하세요");
     if (pw.length < PASSWORD_MIN) return this.reject(this.pwInput, `비밀번호는 ${PASSWORD_MIN}자 이상`);
 
-    const accounts = loadAccounts();
-    const key = nameKey(name);
-    const hash = hashPassword(name, pw);
-    if (accounts[key] && accounts[key] !== hash) {
+    // 새 닉네임이면 등록 (비밀번호 없던 예전 기록도 여기서 주인이 정해짐)
+    this.busy = true;
+    this.setHint("확인 중...");
+    let result;
+    try {
+      result = await Store.login(name, hashPassword(name, pw));
+    } catch (err) {
+      console.error(err);
+      return this.reject(this.pwInput, "서버 연결 실패. 인터넷을 확인하고 다시 시도하세요");
+    } finally {
+      this.busy = false;
+    }
+    if (result === "wrong") {
       this.pwInput.value = "";
       return this.reject(this.pwInput, "이미 있는 닉네임이에요. 비밀번호가 틀렸습니다");
-    }
-    if (!accounts[key]) {
-      accounts[key] = hash; // 새 닉네임 등록 (비밀번호 없던 예전 기록도 여기서 주인이 정해짐)
-      saveAccounts(accounts);
     }
 
     game.playerName = name;
@@ -202,7 +156,7 @@ const UI = {
     startRun();
   },
 
-  showResult(r) {
+  async showResult(r) {
     const b = r.breakdown;
     document.getElementById("result-title").textContent = r.cleared ? "GOAL!" : r.reason === "fall" ? "FALL DOWN" : "SYSTEM DOWN";
     document.getElementById("result-rows").innerHTML = `
@@ -214,29 +168,37 @@ const UI = {
     document.getElementById("result-meta").textContent =
       `${r.meters}m · 비트 ${r.bits}개 · 피격 ${r.hits}회 · ${r.time.toFixed(1)}s`;
 
+    this.result.hidden = false;
+    document.getElementById("retry-btn").focus();
+    const bestEl = document.getElementById("result-best");
+    bestEl.textContent = "기록 저장 중...";
+    document.getElementById("card-qr").innerHTML = "";
+    document.getElementById("card-note").textContent = "";
+
     // 같은 닉네임이면 최고 점수만 유지
-    const board = loadBoard();
-    const prev = board.find((e) => nameKey(e.name) === nameKey(game.playerName));
-    const isBest = !prev || r.total > prev.score;
-    if (isBest) {
-      const entry = { name: game.playerName, color: game.color, score: r.total, cleared: r.cleared, at: Date.now() };
-      saveBoard([...board.filter((e) => e !== prev), entry]);
+    const entry = { name: game.playerName, color: game.color, score: r.total, cleared: r.cleared, at: Date.now() };
+    let prev;
+    try {
+      prev = await Store.submit(entry);
+      bestEl.textContent = !prev
+        ? "첫 기록 등록!"
+        : r.total > prev.score
+          ? `NEW BEST! ${prev.score} → ${r.total}`
+          : `최고 기록 ${prev.score}점 유지`;
+    } catch (err) {
+      console.error(err);
+      bestEl.textContent = "⚠ 기록 저장 실패 (인터넷 확인)";
     }
-    document.getElementById("result-best").textContent = !prev
-      ? "첫 기록 등록!"
-      : isBest
-        ? `NEW BEST! ${prev.score} → ${r.total}`
-        : `최고 기록 ${prev.score}점 유지`;
 
     // 이번 판 기준 순위 (같은 닉네임의 예전 기록은 빼고 비교)
-    const after = loadBoard();
-    const rank = after.filter((e) => nameKey(e.name) !== nameKey(game.playerName) && e.score > r.total).length + 1;
+    const others = Store.board.filter((e) => nameKey(e.name) !== nameKey(game.playerName));
+    const rank = others.filter((e) => e.score > r.total).length + 1;
     this.cardData = {
       name: game.playerName,
       color: game.color,
       score: r.total,
       rank,
-      total: after.length,
+      total: others.length + 1,
       cleared: r.cleared,
       reason: r.reason,
       bits: r.bits,
@@ -247,8 +209,15 @@ const UI = {
     this.showCardQr();
 
     this.renderBoard(document.getElementById("result-board"), game.playerName);
-    this.result.hidden = false;
-    document.getElementById("retry-btn").focus();
+  },
+
+  // 다른 PC에서 기록이 올라오면 호출된다
+  refreshBoards() {
+    if (!this.title.hidden) {
+      this.renderBoard(document.getElementById("title-board"));
+      this.updateNameHint();
+    }
+    if (!this.result.hidden) this.renderBoard(document.getElementById("result-board"), game.playerName);
   },
 
   // 결과 화면에만 뜨는 QR: 폰으로 스캔하면 card.html이 카드를 그려서 저장하게 해준다
@@ -278,7 +247,7 @@ const UI = {
   },
 
   renderBoard(el, highlight) {
-    const board = loadBoard().slice(0, 10);
+    const board = Store.board.slice(0, 10);
     if (!board.length) {
       el.innerHTML = `<li class="empty">아직 기록이 없습니다</li>`;
       return;

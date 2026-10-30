@@ -52,6 +52,17 @@ const CONFIG = {
   DINO_COLORS: ["red", "blue", "pink", "green", "orange"],
   DINO_HEX: { red: "#ec1c24", blue: "#0a8ce8", pink: "#ea3290", green: "#08bf51", orange: "#f8890d" },
 
+  // 온라인 랭킹 (여러 PC 공유). null 이면 이 브라우저에만 저장.
+  // Firebase 콘솔 → 프로젝트 설정 → 내 앱(웹) 의 firebaseConfig 를 그대로 붙여넣기.
+  FIREBASE: {
+    apiKey: "AIzaSyD4_AWyB3LGoYbVQDtQHKRwOQvrKhbn9FU",
+    authDomain: "msg-dino-run.firebaseapp.com",
+    projectId: "msg-dino-run",
+    storageBucket: "msg-dino-run.firebasestorage.app",
+    messagingSenderId: "92731486150",
+    appId: "1:92731486150:web:6a30b749f77c7540188cc7",
+  },
+
   INK: "#535353",
   BG: "#f7f7f7",
 };

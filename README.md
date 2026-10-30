@@ -47,6 +47,18 @@
 
 매핑은 `js/config.js`의 `DINOS`에서 바꿀 수 있습니다.
 
+## 온라인 랭킹 (PC 여러 대)
+
+`js/config.js`의 `FIREBASE`가 `null`이면 랭킹은 그 브라우저에만 저장됩니다. 여러 PC가 랭킹을 공유하려면:
+
+1. https://console.firebase.google.com 에서 프로젝트 생성 (Google 애널리틱스는 꺼도 됨)
+2. 빌드 → Firestore Database → 데이터베이스 만들기 (위치 `asia-northeast3` 서울, 프로덕션 모드)
+3. Firestore → 규칙 탭에 `firestore.rules` 내용을 붙여넣고 게시
+4. 프로젝트 설정(톱니) → 내 앱 → 웹(`</>`) 앱 추가 → 나오는 `firebaseConfig`를 `CONFIG.FIREBASE`에 붙여넣기
+
+연결이 안 되면 화면 위에 빨간 안내가 뜨고 그 PC에만 저장하며 계속 진행합니다.
+테스트 기록을 지우려면 Firestore 콘솔에서 `scores-MSG-2026` 컬렉션을 삭제하거나 `COURSE_SEED`를 바꾸면 됩니다.
+
 ## 결과 카드 (인스타용)
 
 게임이 끝나면 결과 화면에 QR이 뜹니다. 폰으로 찍으면 `card.html`이 열리고, 고른 공룡(선글라스 착용, 1등은 왕관), 닉네임, 점수, 순위가 담긴 1080x1350 카드를 저장하거나 공유할 수 있습니다.
@@ -63,10 +75,12 @@ js/assets.js        스프라이트 로드 + 코드로 그리는 픽셀아트 (�
 js/course.js        시드 기반 코스 생성 (장애물 패턴, 비트 배치, 아이템)
 js/game.js          게임 루프, 물리, 충돌, 렌더링, HUD
 js/ui.js            타이틀/결과 화면, 로컬 랭킹 (localStorage), 닉네임+비밀번호
+js/store.js         랭킹/계정 저장 (Firestore 또는 localStorage)
 js/card.js          결과 카드 그리기 + QR용 데이터 인코딩
 js/sprite-data.js   카드용 픽셀 데이터 (extract_sprites.py가 생성)
 js/vendor/qrcode.js QR 생성 라이브러리 (MIT, Kazuhiko Arase)
 card.html           QR로 여는 카드 저장 페이지
+firestore.rules     Firestore 보안 규칙 (점수는 오를 때만 갱신)
 js/main.js          진입점
 tools/extract_sprites.py   img/ 원본 → assets/sprites/ 개별 스프라이트
 ```
