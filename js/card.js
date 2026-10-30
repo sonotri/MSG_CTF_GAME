@@ -6,12 +6,25 @@ const CARD_W = 1080;
 const CARD_H = 1350;
 const CARD_INK = "#535353";
 const CARD_BG = "#f7f7f7";
-const CARD_FONT = '"Press Start 2P", "Malgun Gothic", "Apple SD Gothic Neo", monospace';
+const CARD_FONT =
+  '"Press Start 2P", "Malgun Gothic", "Apple SD Gothic Neo", monospace';
 
 // ---- 결과 데이터 <-> URL ----
 
 function encodeCardData(d) {
-  const json = JSON.stringify([d.name, d.color, d.score, d.rank, d.total, d.cleared ? 1 : 0, d.reason || "", d.bits, d.meters, d.hits, d.at]);
+  const json = JSON.stringify([
+    d.name,
+    d.color,
+    d.score,
+    d.rank,
+    d.total,
+    d.cleared ? 1 : 0,
+    d.reason || "",
+    d.bits,
+    d.meters,
+    d.hits,
+    d.at,
+  ]);
   const bytes = new TextEncoder().encode(json);
   let bin = "";
   bytes.forEach((b) => (bin += String.fromCharCode(b)));
@@ -20,9 +33,35 @@ function encodeCardData(d) {
 
 function decodeCardData(str) {
   const bin = atob(str.replace(/-/g, "+").replace(/_/g, "/"));
-  const json = new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
-  const [name, color, score, rank, total, cleared, reason, bits, meters, hits, at] = JSON.parse(json);
-  return { name, color, score, rank, total, cleared: !!cleared, reason, bits, meters, hits, at };
+  const json = new TextDecoder().decode(
+    Uint8Array.from(bin, (c) => c.charCodeAt(0)),
+  );
+  const [
+    name,
+    color,
+    score,
+    rank,
+    total,
+    cleared,
+    reason,
+    bits,
+    meters,
+    hits,
+    at,
+  ] = JSON.parse(json);
+  return {
+    name,
+    color,
+    score,
+    rank,
+    total,
+    cleared: !!cleared,
+    reason,
+    bits,
+    meters,
+    hits,
+    at,
+  };
 }
 
 // ---- 그리기 도우미 ----
@@ -30,7 +69,8 @@ function decodeCardData(str) {
 function drawPixels(g, rows, x, y, unit, color) {
   g.fillStyle = color;
   rows.forEach((row, r) => {
-    for (let c = 0; c < row.length; c++) if (row[c] === "#") g.fillRect(x + c * unit, y + r * unit, unit, unit);
+    for (let c = 0; c < row.length; c++)
+      if (row[c] === "#") g.fillRect(x + c * unit, y + r * unit, unit, unit);
   });
 }
 
@@ -44,12 +84,8 @@ const SUNGLASSES = [
   [14, 2, "w"],
 ];
 
-const CROWN = [
-  "#...#...#",
-  "##.###.##",
-  "#########",
-  "#########",
-];
+const CROWN = ["#...#...#", "##.###.##", "#########", "#########"];
+const CROWN_COLORS = { 1: "#f0b400", 2: "#a3abb8", 3: "#c0763a" };
 
 const CACTUS = [
   "..##...",
@@ -100,7 +136,11 @@ function drawCard(canvas, d) {
   g.fillStyle = CARD_INK;
   for (let i = 0; i < 70; i++) {
     g.font = `${20 + Math.floor(rand() * 3) * 8}px ${CARD_FONT}`;
-    g.fillText(rand() < 0.5 ? "0" : "1", rand() * CARD_W, 40 + rand() * (CARD_H - 40));
+    g.fillText(
+      rand() < 0.5 ? "0" : "1",
+      rand() * CARD_W,
+      40 + rand() * (CARD_H - 40),
+    );
   }
   g.globalAlpha = 1;
 
@@ -121,7 +161,7 @@ function drawCard(canvas, d) {
   g.font = `22px ${CARD_FONT}`;
   g.fillText(cardTagline(d), cx, 180);
 
-  // 공룡 + 선글라스 (+ 1등이면 왕관)
+  // 공룡 + 선글라스 (+ 1~3등이면 금/은/동 왕관)
   const U = 16;
   const art = DINO_ART[d.color];
   const dw = art[0].length * U;
@@ -134,16 +174,21 @@ function drawCard(canvas, d) {
     g.fillStyle = c === "b" ? "#111" : "#fff";
     g.fillRect(dx + x * U, dy + y * U, U, U);
   }
-  if (d.rank === 1) drawPixels(g, CROWN, dx + 12 * U, dy - 5 * U, U, "#f0b400");
+  const crownColor = CROWN_COLORS[d.rank];
+  if (crownColor) drawPixels(g, CROWN, dx + 12 * U, dy - 5 * U, U, crownColor);
 
-  // 땅 + 선인장 + 특별 아이템
+  // 땅 + 선인장
   g.fillStyle = CARD_INK;
   g.fillRect(90, groundY, CARD_W - 180, 6);
-  for (let i = 0; i < 26; i++) g.fillRect(100 + rand() * (CARD_W - 200), groundY + 16 + rand() * 30, 6 + rand() * 14, 5);
+  for (let i = 0; i < 26; i++)
+    g.fillRect(
+      100 + rand() * (CARD_W - 200),
+      groundY + 16 + rand() * 30,
+      6 + rand() * 14,
+      5,
+    );
   drawPixels(g, CACTUS, 130, groundY - CACTUS.length * 10, 10, CARD_INK);
   drawPixels(g, CACTUS, 860, groundY - CACTUS.length * 10, 10, CARD_INK);
-  const item = ITEM_ART[dino.item];
-  drawPixels(g, item, 800, dy - 30, 5, CARD_INK);
 
   // 분야
   g.fillStyle = hex;
@@ -169,8 +214,16 @@ function drawCard(canvas, d) {
   g.fillText(`RANK #${d.rank} / ${d.total}`, cx, 1150);
   g.fillStyle = CARD_INK;
   g.font = `20px ${CARD_FONT}`;
-  const status = d.cleared ? "GOAL" : d.reason === "fall" ? "FALL DOWN" : "SYSTEM DOWN";
-  g.fillText(`${status} · ${d.meters}m · BITS ${d.bits} · HIT ${d.hits}`, cx, 1205);
+  const status = d.cleared
+    ? "GOAL"
+    : d.reason === "fall"
+      ? "FALL DOWN"
+      : "SYSTEM DOWN";
+  g.fillText(
+    `${status} · ${d.meters}m · BITS ${d.bits} · HIT ${d.hits}`,
+    cx,
+    1205,
+  );
 
   // 날짜 / 태그
   const date = new Date(d.at);
