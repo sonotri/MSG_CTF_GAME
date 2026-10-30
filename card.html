@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSG Dino Run Card</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #535353; --bg: #f7f7f7; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 16px 32px;
+    }
+    h1 { font-family: "Press Start 2P", monospace; font-size: 16px; margin: 4px 0 0; }
+    #card {
+      width: 100%;
+      max-width: 480px;
+      border: 2px solid var(--ink);
+      background: #fff;
+      display: block;
+    }
+    .hint { margin: 0; font-size: 14px; text-align: center; line-height: 1.6; }
+    .btn {
+      width: 100%;
+      max-width: 480px;
+      font-family: "Press Start 2P", monospace;
+      font-size: 14px;
+      padding: 16px;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+    }
+    .btn.ghost { background: #fff; color: var(--ink); }
+    .error { color: #e33; }
+  </style>
+</head>
+<body>
+  <h1>MSG DINO RUN</h1>
+  <img id="card" alt="게임 결과 카드">
+  <p class="hint">이미지를 <b>꾹 눌러서 저장</b>하거나 아래 버튼을 누르세요</p>
+  <button id="share" class="btn" hidden>공유하기 / 인스타</button>
+  <a id="download" class="btn ghost" download="msg-dino-run.png">이미지 다운로드</a>
+
+  <script src="js/config.js"></script>
+  <script src="js/sprite-data.js"></script>
+  <script src="js/course.js"></script>
+  <script src="js/card.js"></script>
+  <script>
+    (async function () {
+      let data;
+      try {
+        data = decodeCardData(new URLSearchParams(location.hash.slice(1)).get("d"));
+      } catch {
+        document.querySelector(".hint").innerHTML = '<span class="error">카드 정보가 올바르지 않아요. QR을 다시 찍어주세요.</span>';
+        document.getElementById("download").hidden = true;
+        return;
+      }
+
+      await document.fonts.load(`20px "Press Start 2P"`).catch(() => {});
+      const canvas = document.createElement("canvas");
+      drawCard(canvas, data);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      const url = URL.createObjectURL(blob);
+      const fileName = `msg-dino-run-${data.name}.png`;
+
+      document.getElementById("card").src = url;
+      const dl = document.getElementById("download");
+      dl.href = url;
+      dl.download = fileName;
+
+      // 모바일 공유 시트 (인스타 바로 올리기)
+      const file = new File([blob], fileName, { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        const share = document.getElementById("share");
+        share.hidden = false;
+        share.onclick = () => navigator.share({ files: [file], title: "MSG DINO RUN" }).catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html>
