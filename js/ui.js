@@ -121,9 +121,7 @@ const UI = {
         `비밀번호 없는 예전 기록(${rec.score}점) · 지금 입력한 비밀번호로 등록`,
       );
     } else {
-      this.setHint(
-        `새 닉네임 · 비밀번호(${PASSWORD_MIN}자 이상)를 기억해 두세요`,
-      );
+      this.setHint(` `);
     }
   },
 
