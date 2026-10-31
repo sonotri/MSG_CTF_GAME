@@ -47,11 +47,22 @@ const CONFIG = {
     { color: "pink",   field: "FORENSIC", item: "magnifier" },
     { color: "green",  field: "CRYPTO",   item: "lock" },
     { color: "orange", field: "REV",      item: "wrench" },
+    { color: "gold",   field: "WEB3",     item: "wallet" },
+    { color: "purple", field: "H/W",      item: "chip" },
   ],
 
-  DINO_COLORS: ["red", "blue", "pink", "green", "orange"],
-  DINO_HEX: { red: "#ec1c24", blue: "#0a8ce8", pink: "#ea3290", green: "#08bf51", orange: "#f8890d" },
-
+  DINO_COLORS: ["red", "blue", "pink", "green", "orange", "gold", "purple"],
+  //DINO_HEX: { red: "#ec1c24", blue: "#0a8ce8", pink: "#ea3290", green: "#08bf51", orange: "#f8890d" },
+  DINO_HEX: {
+  red: "#ec1c24",
+  blue: "#0a8ce8",
+  pink: "#ea3290",
+  green: "#08bf51",
+  orange: "#f8890d",
+  gold: "#ffe14a",
+  purple: "#9b59d0",
+},
+  
   // 온라인 랭킹 (여러 PC 공유). null 이면 이 브라우저에만 저장.
   // Firebase 콘솔 → 프로젝트 설정 → 내 앱(웹) 의 firebaseConfig 를 그대로 붙여넣기.
   FIREBASE: {
