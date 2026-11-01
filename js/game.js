@@ -460,15 +460,47 @@ function drawHUD() {
   ctx.fillText(`${Math.floor(prog * CONFIG.COURSE_METERS)}m`, barX, 38);
 }
 
+
 function drawCountdown() {
   if (game.state !== "countdown") return;
+
   const n = Math.ceil(game.countdown);
-  ctx.font = '32px "Press Start 2P", "Galmuri11", monospace';
+  const W = CONFIG.WIDTH;
+  const H = CONFIG.HEIGHT;
+
+  // 1. 화면 전체를 어둡게 만들기
+  ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. 카운트다운 숫자 설정
   ctx.textAlign = "center";
-  ctx.fillStyle = CONFIG.INK;
-  ctx.fillText(String(n), CONFIG.WIDTH / 2, 120);
+  ctx.textBaseline = "middle";
+  ctx.font = '64px "Press Start 2P", "Galmuri11", monospace';
+
+  // 3. 숫자 테두리
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#222222";
+  ctx.strokeText(String(n), W / 2, H / 2);
+
+  // 4. 숫자 표시
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(String(n), W / 2, H / 2);
+
+  // 정렬 설정 원상복구
   ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
+
+
+// function drawCountdown() {
+//   if (game.state !== "countdown") return;
+//   const n = Math.ceil(game.countdown);
+//   ctx.font = '32px "Press Start 2P", "Galmuri11", monospace';
+//   ctx.textAlign = "center";
+//   ctx.fillStyle = CONFIG.INK;
+//   ctx.fillText(String(n), CONFIG.WIDTH / 2, 120);
+//   ctx.textAlign = "left";
+// }
 
 function render() {
   ctx.save();
